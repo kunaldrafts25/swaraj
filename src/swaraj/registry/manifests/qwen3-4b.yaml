@@ -1,0 +1,25 @@
+# Qwen3-4B-Instruct Model Manifest
+# 
+# WARNING: This manifest uses a PLACEHOLDER checksum.
+# The actual SHA256 must be calculated from the verified artifact.
+# 
+# REQ-173: Model SHA256 Verification
+# REQ-175: Reject Placeholder/fabricated checksums
+# 
+# DO NOT use this manifest for production until:
+# 1. The model artifact is obtained from a trusted source
+# 2. The SHA256 is calculated from the actual file
+# 3. The checksum is verified against an upstream publisher hash (if available)
+# 4. This file is updated with the real checksum
+# 5. The manifest is re-signed
+
+name: qwen3-4b-instruct
+version: "1.0.0"
+gguf_path: qwen3-4b-instruct-q4_k_m.gguf
+sha256: "0000000000000000000000000000000000000000000000000000000000000000"
+quant: Q4_K_M
+context_length: 8192
+hardware_tier_min: cpu_only
+capability_vector: null
+signed_at: "2025-01-01T00:00:00Z"
+signature: "PLACEHOLDER_SIGNATURE_UNTIL_CHECKSUM_VERIFIED"
