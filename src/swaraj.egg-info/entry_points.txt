@@ -1,0 +1,2 @@
+[console_scripts]
+swaraj = swaraj.api.main:main

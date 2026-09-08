@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "description": "SWARAJ Pilot Users - Flat-file authentication for pilot phase",
+  "users": [
+    {
+      "user_id": "inspector_user",
+      "name": "Inspector User",
+      "email": "inspector@mrpl.local",
+      "role": "Inspector",
+      "password_hash": "sha256:5e884898da28047d8c3f0b9b8a6f6c6e8f8c8d8e8f8a8b8c8d8e8f8a8b8c8d8e",
+      "active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "user_id": "approver_user",
+      "name": "Approver User",
+      "email": "approver@mrpl.local",
+      "role": "Approver",
+      "password_hash": "sha256:6e884898da28047d8c3f0b9b8a6f6c6e8f8c8d8e8f8a8b8c8d8e8f8a8b8c8d8f",
+      "active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    },
+    {
+      "user_id": "admin_user",
+      "name": "Admin User",
+      "email": "admin@mrpl.local",
+      "role": "Admin",
+      "password_hash": "sha256:7e884898da28047d8c3f0b9b8a6f6c6e8f8c8d8e8f8a8b8c8d8e8f8a8b8c8d90",
+      "active": true,
+      "created_at": "2024-01-01T00:00:00Z"
+    }
+  ],
+  "security_notes": {
+    "authentication": "Flat-file for pilot only. Production requires proper identity management.",
+    "password_storage": "Password hashes are placeholders for pilot. Use bcrypt/argon2 in production.",
+    "default_passwords": "Change default passwords before any real deployment."
+  }
+}
