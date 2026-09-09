@@ -256,6 +256,13 @@ class EgressMonitor:
         self._thread = threading.Thread(target=self._monitoring_loop, daemon=True)
         self._thread.start()
     
+    def start_monitoring(self, run_id: Optional[str] = None) -> None:
+        """Alias for start()."""
+        if run_id:
+            self.run_id = run_id
+            self._state.run_id = run_id
+        self.start()
+    
     def stop(self) -> None:
         """Stop monitoring."""
         self._monitoring = False

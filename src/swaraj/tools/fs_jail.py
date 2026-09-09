@@ -1,4 +1,4 @@
-"""
+r"""
 SWARAJ Filesystem Jail - Strict path validation and access control.
 
 SECURITY BOUNDARIES:
@@ -30,14 +30,14 @@ class FilesystemJail:
     - Canonical path resolution before validation
     """
     
-    def __init__(self, workspace_root: Path):
+    def __init__(self, workspace_root: Path | str):
         """
         Initialize filesystem jail.
         
         Args:
             workspace_root: Root directory for allowed file access
         """
-        self.workspace_root = workspace_root.resolve()
+        self.workspace_root = Path(workspace_root).resolve()
         
         # Ensure workspace exists
         if not self.workspace_root.exists():
@@ -63,6 +63,15 @@ class FilesystemJail:
         """Check if path is absolute."""
         return os.path.isabs(path_str)
     
+    def resolve_safe_path(self, requested_path: str | Path) -> Path:
+        """Resolve path and validate it is safely jailed within workspace."""
+        path_str = str(requested_path).replace("\\", "/")
+        # Strip leading workspace_root if already prepended
+        ws_str = str(self.workspace_root).replace("\\", "/")
+        if path_str.startswith(ws_str):
+            path_str = path_str[len(ws_str):].lstrip("/")
+        return self._resolve_and_validate(path_str)
+
     def _resolve_and_validate(self, requested_path: str) -> Path:
         """
         Resolve path and validate it's within workspace.

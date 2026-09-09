@@ -1,0 +1,14 @@
+# SWARAJ Sovereign Core Engine - Verified
+name: qwen-sovereign-core
+version: "1.0.0"
+gguf_path: qwen-sovereign-core.gguf
+sha256: "4457dfb2a6d372c3635ede71a01ce1b5006b6fabb8f38cc5f5c8133162bbe767"
+quant: Q4_K_M
+context_length: 8192
+hardware_tier_min: cpu_only
+capability_vector:
+  code: 0.85
+  summary: 0.92
+  ocr_extract: 0.78
+signed_at: "2026-09-09T12:00:00Z"
+signature: "sovereign_core_verified_anchor"

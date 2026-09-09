@@ -48,7 +48,16 @@ export async function decideRouter(taskDescription: string, taskType?: string): 
   });
 }
 
-export async function ingestDocument(file: File, userId: string, role: string): Promise<{ run_id: string; status: string }> {
+export interface IngestResult {
+  document_id: string;
+  pages_processed: number;
+  ocr_results: any[];
+  indexed: boolean;
+  extracted_preview?: string;
+  filename?: string;
+}
+
+export async function ingestDocument(file: File, userId: string, role: string): Promise<IngestResult> {
   const formData = new FormData();
   formData.append('file', file);
   formData.append('user_id', userId);
@@ -65,6 +74,20 @@ export async function ingestDocument(file: File, userId: string, role: string): 
   }
 
   return response.json();
+}
+
+export interface RunSummary {
+  run_id: string;
+  task: string;
+  status: string;
+  started_at: string;
+  completed_at?: string;
+  model_used?: string;
+  artifacts?: string[];
+}
+
+export async function listRuns(): Promise<{ runs: RunSummary[]; total: number }> {
+  return fetchApi<{ runs: RunSummary[]; total: number }>('/runs');
 }
 
 export async function startAgentRun(
@@ -89,7 +112,12 @@ export async function getAgentTrace(runId: string): Promise<AgentState> {
 }
 
 export async function getApprovals(): Promise<ApprovalRequest[]> {
-  return fetchApi<ApprovalRequest[]>('/approvals');
+  const data = await fetchApi<{ pending: ApprovalRequest[]; count: number } | ApprovalRequest[]>('/approvals');
+  const items = Array.isArray(data) ? data : data?.pending || [];
+  return items.map((item) => ({
+    ...item,
+    status: item.status || 'pending',
+  }));
 }
 
 export async function approveRequest(approvalId: string, reviewerId: string, comments?: string): Promise<{ success: boolean }> {

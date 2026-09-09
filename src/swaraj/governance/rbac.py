@@ -294,3 +294,97 @@ class RBACManager:
     def get_pending_approvals(self) -> list[ApprovalRequest]:
         """Get all pending approval requests."""
         return [r for r in self._approval_queue.values() if r.status == "pending"]
+
+    def get_approval_queue(self) -> list[ApprovalRequest]:
+        """Get pending approval queue items."""
+        return self.get_pending_approvals()
+
+    def process_approval(
+        self,
+        approval_id: str,
+        approved: bool,
+        reviewer_id: str,
+        comments: Optional[str] = None,
+    ) -> Optional[ApprovalRequest]:
+        """Process an approval or rejection decision."""
+        if approved:
+            return self.approve_request(approval_id=approval_id, approver_id=reviewer_id, reason=comments or "")
+        else:
+            return self.deny_request(approval_id=approval_id, approver_id=reviewer_id, reason=comments or "")
+
+    def evaluate_action(
+        self,
+        action: str | Action,
+        user_id: str,
+        role: Optional[str] = None,
+        artifact: str = "",
+    ) -> PermissionResult:
+        """
+        Evaluate a single action with optional role fallback.
+        """
+        action_str = action.value if isinstance(action, Action) else str(action)
+        
+        # Determine role: check stored role first, fallback to passed role
+        user_role = self.get_user_role(user_id)
+        if user_role is None and role:
+            try:
+                # Handle case-insensitivity: "inspector" -> "Inspector"
+                normalized_role = role.strip().title()
+                if normalized_role == "Operator":
+                    normalized_role = "Inspector"  # Map Operator to Inspector permissions
+                user_role = Role(normalized_role)
+            except Exception:
+                # Fallback check
+                for r in Role:
+                    if r.value.lower() == role.lower():
+                        user_role = r
+                        break
+
+        if user_role is None:
+            return PermissionResult(
+                authorized=False,
+                role="unknown",
+                action=action_str,
+                reason=f"User '{user_id}' not found and role '{role}' is invalid",
+            )
+
+        role_name = user_role.value
+        role_config = self._policy.get("roles", {}).get(role_name, {})
+        permitted_actions = role_config.get("permissions", [])
+
+        if action_str not in permitted_actions:
+            approval_actions = role_config.get("requires_approval", [])
+            if action_str in approval_actions:
+                approval_id = f"APR-{uuid.uuid4().hex[:8].upper()}"
+                approval_request = ApprovalRequest(
+                    approval_id=approval_id,
+                    user_id=user_id,
+                    role=role_name,
+                    action=action_str,
+                    resource=artifact,
+                    requested_at=datetime.now(timezone.utc).isoformat(),
+                )
+                self._approval_queue[approval_id] = approval_request
+                return PermissionResult(
+                    authorized=False,
+                    role=role_name,
+                    action=action_str,
+                    reason=f"Action '{action_str}' requires approval for role '{role_name}'",
+                    approval_required=True,
+                    approval_id=approval_id,
+                )
+
+            return PermissionResult(
+                authorized=False,
+                role=role_name,
+                action=action_str,
+                reason=f"Action '{action_str}' not permitted for role '{role_name}'",
+            )
+
+        return PermissionResult(
+            authorized=True,
+            role=role_name,
+            action=action_str,
+            reason=f"Action '{action_str}' permitted for role '{role_name}'",
+        )
+

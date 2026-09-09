@@ -101,9 +101,10 @@ class RegistryLoader:
         self.models_dir = models_dir or settings.models_dir
         self._loaded_manifests: Dict[str, ModelManifest] = {}
         self._verification_status: Dict[str, ChecksumStatus] = {}
+        self._checksum_cache: Dict[Tuple[str, int, float], str] = {}
     
     def _calculate_sha256(self, file_path: Path) -> str:
-        """Calculate SHA256 checksum of a file.
+        """Calculate SHA256 checksum of a file with high-throughput 4MB buffer.
         
         Args:
             file_path: Path to the file.
@@ -116,7 +117,7 @@ class RegistryLoader:
         """
         sha256_hash = hashlib.sha256()
         with open(file_path, "rb") as f:
-            for chunk in iter(lambda: f.read(8192), b""):
+            for chunk in iter(lambda: f.read(4 * 1024 * 1024), b""):
                 sha256_hash.update(chunk)
         return sha256_hash.hexdigest().lower()
     
@@ -167,11 +168,11 @@ class RegistryLoader:
         
         return resolved
     
-    def load_manifest(self, manifest_name: str) -> ModelManifest:
+    def load_manifest(self, manifest_name: str | Path) -> ModelManifest:
         """Load and validate a model manifest.
         
         Args:
-            manifest_name: Name of the manifest (without .yaml extension).
+            manifest_name: Name of the manifest (with or without .yaml extension) or Path.
         
         Returns:
             Validated ModelManifest object.
@@ -180,7 +181,12 @@ class RegistryLoader:
             ManifestValidationError: If manifest fails schema validation.
             FileNotFoundError: If manifest file does not exist.
         """
-        manifest_path = self.registry_dir / f"{manifest_name}.yaml"
+        if isinstance(manifest_name, Path):
+            manifest_path = manifest_name if manifest_name.suffix == ".yaml" else manifest_name.with_suffix(".yaml")
+        elif str(manifest_name).endswith(".yaml"):
+            manifest_path = self.registry_dir / str(manifest_name)
+        else:
+            manifest_path = self.registry_dir / f"{manifest_name}.yaml"
         
         if not manifest_path.exists():
             raise FileNotFoundError(f"Manifest not found: {manifest_path}")
@@ -234,9 +240,15 @@ class RegistryLoader:
             self._verification_status[manifest.name] = ChecksumStatus.PLACEHOLDER
             return ChecksumStatus.PLACEHOLDER
         
-        # Calculate actual checksum
+        # Calculate actual checksum with stat cache
         try:
-            actual_sha256 = self._calculate_sha256(artifact_path)
+            stat_info = artifact_path.stat()
+            cache_key = (str(artifact_path.resolve()), stat_info.st_size, stat_info.st_mtime)
+            if cache_key in self._checksum_cache:
+                actual_sha256 = self._checksum_cache[cache_key]
+            else:
+                actual_sha256 = self._calculate_sha256(artifact_path)
+                self._checksum_cache[cache_key] = actual_sha256
         except (IOError, OSError):
             self._verification_status[manifest.name] = ChecksumStatus.MISSING
             return ChecksumStatus.MISSING

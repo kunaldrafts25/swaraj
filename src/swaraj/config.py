@@ -3,10 +3,25 @@
 Uses Pydantic Settings for environment-based configuration with fail-closed defaults.
 """
 
+import sys
 from pathlib import Path
 from typing import Optional
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+
+def _get_bundle_dir() -> Path:
+    """Return read-only bundle directory (supports PyInstaller sys._MEIPASS)."""
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return Path(sys._MEIPASS)
+    return Path(__file__).resolve().parent.parent.parent
+
+
+def _get_base_dir() -> Path:
+    """Return application base directory (where executable or project root lives)."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent.parent.parent
 
 
 class SwarajSettings(BaseSettings):
@@ -27,19 +42,19 @@ class SwarajSettings(BaseSettings):
     app_version: str = "2.0.0"
     debug: bool = False
     
-    # Paths - relative to project root
-    project_root: Path = Path(__file__).resolve().parent.parent.parent
-    models_dir: Path = Path(__file__).resolve().parent.parent.parent / "models"
-    registry_dir: Path = Path(__file__).resolve().parent.parent.parent / "src" / "swaraj" / "registry" / "manifests"
-    data_dir: Path = Path(__file__).resolve().parent.parent.parent / "data"
-    logs_dir: Path = Path(__file__).resolve().parent.parent.parent / "logs"
-    policy_dir: Path = Path(__file__).resolve().parent.parent.parent / "policies"
-    users_file: Path = Path(__file__).resolve().parent.parent.parent / "users.json"
-    audit_db_path: Path = Path(__file__).resolve().parent.parent.parent / "data" / "audit.db"
+    # Paths - relative to bundle root or base directory
+    project_root: Path = _get_bundle_dir()
+    models_dir: Path = _get_base_dir() / "models"
+    registry_dir: Path = _get_bundle_dir() / "src" / "swaraj" / "registry" / "manifests"
+    data_dir: Path = _get_base_dir() / "data"
+    logs_dir: Path = _get_base_dir() / "logs"
+    policy_dir: Path = _get_bundle_dir() / "policies"
+    users_file: Path = _get_bundle_dir() / "users.json"
+    audit_db_path: Path = _get_base_dir() / "data" / "audit.db"
     
     # Security settings
-    signing_key_dir: Path = Path(__file__).resolve().parent.parent.parent / "keys"
-    keys_dir: Path = Path(__file__).resolve().parent.parent.parent / "keys"
+    signing_key_dir: Path = _get_base_dir() / "keys"
+    keys_dir: Path = _get_base_dir() / "keys"
     signing_private_key_path: Optional[Path] = None
     signing_public_key_path: Optional[Path] = None
     

@@ -30,12 +30,17 @@ class OCREngine:
         self._backend = None
         self._available = False
         
+        import importlib.util
+        if importlib.util.find_spec("paddleocr") is None:
+            self._ocr = None
+            return
+
         try:
             from paddleocr import PaddleOCR
             self._ocr = PaddleOCR(use_angle_cls=True, lang='en', show_log=False)
             self._backend = "paddleocr"
             self._available = True
-        except ImportError:
+        except Exception:
             self._ocr = None
     
     @property
@@ -66,7 +71,9 @@ class OCREngine:
             full_text_parts = []
             
             for page_num, image in enumerate(images, start=1):
-                image_array = list(image.getdata())
+                # PaddleOCR expects a numpy uint8 array (H, W, C), not a flat list
+                import numpy as np
+                image_array = np.array(image.convert("RGB"), dtype=np.uint8)
                 result = self._ocr.ocr(image_array, cls=True)
                 
                 if result and result[0]:

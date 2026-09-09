@@ -8,25 +8,24 @@ import hashlib
 class DocumentSearch:
     """Local document search with ChromaDB and FastEmbed."""
     
-    def __init__(self, persist_directory: str):
-        self.persist_directory = Path(persist_directory)
+    def __init__(self, persist_directory: Optional[str] = None, workspace_root: Optional[str] = None):
+        target_dir = persist_directory or (Path(workspace_root) / "chroma" if workspace_root else "data/chroma")
+        self.persist_directory = Path(target_dir)
         self._client = None
         self._collection = None
         self._available = False
         
         try:
             import chromadb
-            from chromadb.config import Settings
-            
             self.persist_directory.mkdir(parents=True, exist_ok=True)
-            
-            self._client = chromadb.Client(Settings(
-                chroma_db_impl="duckdb+parquet",
-                persist_directory=str(self.persist_directory),
-            ))
+            if hasattr(chromadb, "PersistentClient"):
+                self._client = chromadb.PersistentClient(path=str(self.persist_directory))
+            else:
+                self._client = chromadb.Client()
             self._available = True
-        except ImportError:
+        except Exception:
             self._client = None
+            self._available = False
     
     @property
     def available(self) -> bool:
@@ -43,6 +42,18 @@ class DocumentSearch:
             self._collection = self._client.get_or_create_collection(name=name)
         except Exception as e:
             raise RuntimeError(f"Failed to create collection: {e}")
+
+    def index_document(
+        self,
+        doc_id: str,
+        text: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Index a document into the default collection."""
+        if not self._collection:
+            self.create_collection()
+        self.add_document(doc_id=doc_id, content=text, metadata=metadata)
+
     
     def add_document(
         self,
@@ -138,3 +149,6 @@ class DocumentSearch:
                 continue
         
         return references
+
+
+DocumentSearchTool = DocumentSearch

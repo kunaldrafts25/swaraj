@@ -1,18 +1,42 @@
-```
 # Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-
-# Database
-data/audit.db
-
-# Keys (assuming sensitive)
-keys/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+**/*.egg-info/
+dist/
+build/
+.venv/
+env/
+venv/
+*.zip
 
 # Environment
 .env
 .env.local
 *.env.*
-```
+
+# Data and Storage
+data/
+keys/
+logs/
+*.log
+
+# Models (Large binary models must NOT be committed to git)
+models/*
+!models/.gitkeep
+
+# Testing & IDE
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.vscode/
+.idea/
+
+# UI Web
+ui-web/node_modules/
+**/node_modules/
+ui-web/dist/
+ui-web/*.tsbuildinfo
+*.tsbuildinfo

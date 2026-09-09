@@ -263,6 +263,63 @@ class CertificateManager:
             signer_pubkey=f"ed25519:{pubkey_hex}",
         )
     
+    def save_certificate(self, certificate: RunCertificate, certs_dir: "Path") -> "Path":
+        """
+        Persist a certificate to disk as JSON.
+
+        Args:
+            certificate: Signed certificate to save.
+            certs_dir: Directory to write certificate files to.
+
+        Returns:
+            Path to the written certificate file.
+        """
+        import json
+        certs_dir = Path(certs_dir)
+        certs_dir.mkdir(parents=True, exist_ok=True)
+        cert_path = certs_dir / f"{certificate.run_id}.json"
+        cert_path.write_text(
+            json.dumps(certificate.to_dict(), indent=2, sort_keys=True),
+            encoding="utf-8",
+        )
+        return cert_path
+
+    def load_certificate(
+        self, run_id: str, certs_dir: "Path"
+    ) -> Optional[RunCertificate]:
+        """
+        Load a certificate from disk.
+
+        Args:
+            run_id: Run identifier.
+            certs_dir: Directory where certificate files are stored.
+
+        Returns:
+            RunCertificate if found, None otherwise.
+        """
+        import json
+        cert_path = Path(certs_dir) / f"{run_id}.json"
+        if not cert_path.exists():
+            return None
+        data = json.loads(cert_path.read_text(encoding="utf-8"))
+        return RunCertificate.from_dict(data)
+
+    def verify_certificate_dict(
+        self, cert_data: dict
+    ) -> "CertificateVerificationResult":
+        """
+        Verify a certificate supplied as a raw dict (e.g. from API request).
+        Convenience wrapper around verify_certificate.
+        """
+        try:
+            cert = RunCertificate.from_dict(cert_data)
+        except (KeyError, TypeError) as exc:
+            return CertificateVerificationResult(
+                valid=False,
+                reason=f"Invalid certificate structure: {exc}",
+            )
+        return self.verify_certificate(cert)
+
     def verify_certificate(self, certificate: RunCertificate) -> CertificateVerificationResult:
         """
         Verify a certificate's signature and structure.

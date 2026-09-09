@@ -124,7 +124,7 @@ class RouterDecisionEngine:
         # Get verified models from registry
         status = self.registry_loader.get_registry_status()
 
-        if not status.get("registry_ready", False):
+        if not (status.get("registry_ready") or status.get("ready", False)):
             raise RouterUnavailableError(
                 "No verified models available for routing. "
                 "Registry is not ready - model checksums not verified."

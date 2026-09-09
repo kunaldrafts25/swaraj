@@ -40,7 +40,11 @@ class TestPrivateKeyProtection:
             pytest.skip("Private key not generated yet (run setup.sh first)")
         
         perms = oct(key_path.stat().st_mode)[-3:]
-        assert perms == "600", f"Private key permissions {perms} should be 600"
+        import sys
+        if sys.platform != "win32":
+            assert perms == "600", f"Private key permissions {perms} should be 600"
+        else:
+            assert key_path.exists()
     
     def test_setup_does_not_print_private_key(self, capfd):
         """Setup script must never print private key content."""
@@ -124,7 +128,9 @@ class TestCertificateVerification:
         script_path = Path("scripts/verify_certificate.py")
         
         assert script_path.exists(), "scripts/verify_certificate.py missing"
-        assert script_path.stat().st_mode & 0o111, "Script not executable"
+        import sys
+        if sys.platform != "win32":
+            assert script_path.stat().st_mode & 0o111, "Script not executable"
     
     def test_verify_script_rejects_tampered_cert(self):
         """Verification script must exit non-zero for tampered certs."""

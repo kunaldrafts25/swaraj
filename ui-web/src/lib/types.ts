@@ -58,15 +58,29 @@ export interface PlannedStep {
 
 export interface AgentState {
   run_id: string;
-  status: 'running' | 'completed' | 'failed' | 'security_failed';
-  current_step: string | null;
-  plan: AgentPlan | null;
-  observations: Observation[];
-  self_check_iterations: number;
-  self_check_valid: boolean | null;
-  self_check_errors: ValidationError[] | null;
-  certificate_eligible: boolean;
-  security_status: 'clean' | 'failed';
+  status: 'running' | 'completed' | 'failed' | 'security_failed' | string;
+  current_step?: string | null;
+  plan?: AgentPlan | null;
+  observations?: Observation[];
+  self_check_iterations?: number;
+  self_check_valid?: boolean | null;
+  self_check_errors?: ValidationError[] | null;
+  certificate_eligible?: boolean;
+  security_status?: 'clean' | 'failed' | string;
+  state?: Record<string, any>;
+  transitions?: any[];
+  iterations?: number;
+  steps?: any[];
+  planning_result?: any;
+  rbac_result?: any;
+  self_check_result?: any;
+  selected_model?: string;
+  hardware_tier?: string;
+  generated_artifacts?: string[];
+  failure_reason?: string;
+  artifact_content?: string | null;
+  artifact_filename?: string | null;
+  task_description?: string | null;
 }
 
 export interface Observation {

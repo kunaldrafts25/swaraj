@@ -528,6 +528,75 @@ python -m pytest tests/ -v
 
 ---
 
+## Pilot Activation Steps
+
+The system is implementation-complete and test-gated. It becomes operational after the local model artifact is provisioned and the activation checks pass.
+
+1. Place the Qwen3-4B-Instruct GGUF artifact into:
+
+   `models/qwen3-4b-instruct-q4_k_m.gguf`
+
+2. Run the setup script to calculate and verify the model checksum:
+
+   `./scripts/setup.sh`
+
+   The setup script must:
+
+   - verify the GGUF artifact;
+   - calculate or validate the SHA256 checksum;
+   - initialize local state;
+   - verify signing key permissions;
+   - confirm backend readiness.
+
+3. Restart the backend with the verified model:
+
+   `docker compose up --build`
+
+   or, for local development:
+
+   `uvicorn src.swaraj.api.main:app --host 0.0.0.0 --port 8000`
+
+4. Run the validation suite:
+
+   `pytest -q`
+
+   All required backend, security, registry, router, RBAC, egress, self-check, and certificate tests must pass.
+
+5. Run the frontend against the live backend:
+
+   ```bash
+   cd ui-web
+   npm install
+   npm run build
+   npm run dev
+   ```
+
+6. Execute a full end-to-end workflow:
+
+   - upload or reference a refinery document;
+   - submit a task;
+   - confirm router decision;
+   - confirm RBAC pruning;
+   - confirm agent execution;
+   - confirm generated Word/Excel artifact;
+   - confirm self-check validation;
+   - confirm egress monitoring state;
+   - confirm certificate issuance.
+
+7. Independently verify the generated certificate offline:
+
+   `python scripts/verify_certificate.py path/to/certificate.json`
+
+   The verifier must reconstruct the hash chain, verify the Ed25519 signature, and exit successfully.
+
+## Operational Status
+
+All required production code, security controls, tests, and documentation are in place.
+
+The pilot is operational once the verified model artifact is provisioned and the activation checks above pass.
+
+---
+
 ## Pilot Limitations
 
 See `docs/PILOT_LIMITATIONS.md` for comprehensive list. Key limitations:

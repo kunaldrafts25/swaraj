@@ -38,7 +38,7 @@ class TestTraversalRejection:
         assert "traversal" in str(exc_info.value).lower()
     
     def test_dotdot_backslash_rejected(self, jail):
-        """..\ traversal is rejected."""
+        r"""..\ traversal is rejected."""
         with pytest.raises(FilesystemJailError) as exc_info:
             jail.validate_path("..\\secret")
         
@@ -107,7 +107,10 @@ class TestSymlinkEscape:
         
         # Create symlink inside workspace pointing outside
         symlink_path = workspace_root / "evil_link"
-        symlink_path.symlink_to(outside_file)
+        try:
+            symlink_path.symlink_to(outside_file)
+        except OSError as e:
+            pytest.skip(f"Symlinks not permitted in current environment: {e}")
         
         with pytest.raises(FilesystemJailError) as exc_info:
             jail.validate_path("evil_link")

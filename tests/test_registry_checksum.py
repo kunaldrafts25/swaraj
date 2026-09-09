@@ -334,7 +334,10 @@ class TestPathTraversal:
         
         # Create symlink inside models_dir pointing outside
         symlink_path = models_dir / "escape.gguf"
-        symlink_path.symlink_to(secret_file)
+        try:
+            symlink_path.symlink_to(secret_file)
+        except OSError as e:
+            pytest.skip(f"Symlinks not permitted in current environment: {e}")
         
         manifest_data = {
             "name": "escape-model",

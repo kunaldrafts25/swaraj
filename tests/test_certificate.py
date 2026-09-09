@@ -235,12 +235,15 @@ class TestPrivateKeySecurity:
         cert_manager = CertificateManager(keys_dir)
         private_key_path = keys_dir / "swaraj_private.key"
         
-        # Check file permissions (should be 0600)
-        import stat
-        file_stat = private_key_path.stat()
-        mode = file_stat.st_mode & 0o777
-        
-        assert mode == 0o600, f"Private key permissions should be 0600, got {oct(mode)}"
+        # Check file permissions (should be 0600 on POSIX)
+        import sys
+        if sys.platform != "win32":
+            import stat
+            file_stat = private_key_path.stat()
+            mode = file_stat.st_mode & 0o777
+            assert mode == 0o600, f"Private key permissions should be 0600, got {oct(mode)}"
+        else:
+            assert private_key_path.exists()
     
     def test_public_key_exposed_safely(self, cert_manager):
         """Public key can be safely exposed."""

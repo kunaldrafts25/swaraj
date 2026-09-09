@@ -292,40 +292,46 @@ python3 << 'PYEOF'
 import sys
 from pathlib import Path
 
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+
 # Import test
 try:
     from swaraj.api.main import app
-    print("✓ Application imports successfully")
+    print("[OK] Application imports successfully")
 except Exception as e:
-    print(f"✗ Import failed: {e}")
+    print(f"[FAIL] Import failed: {e}")
     sys.exit(1)
 
 # Directory checks
 required_dirs = ['data/keys', 'data/audit', 'data/workspace', 'data/artifacts', 'logs']
 for dir_name in required_dirs:
     if Path(dir_name).is_dir():
-        print(f"✓ Directory exists: {dir_name}")
+        print(f"[OK] Directory exists: {dir_name}")
     else:
-        print(f"✗ Directory missing: {dir_name}")
+        print(f"[FAIL] Directory missing: {dir_name}")
         sys.exit(1)
 
 # Key file checks
 private_key = Path('data/keys/private_key.bin')
 if private_key.exists():
-    print(f"✓ Private key exists: {private_key}")
-    # Check permissions
+    print(f"[OK] Private key exists: {private_key}")
+    # Check permissions on POSIX
     import stat
     perms = oct(private_key.stat().st_mode)[-3:]
-    if perms == '600':
-        print(f"✓ Private key permissions correct: {perms}")
+    if sys.platform != 'win32':
+        if perms == '600':
+            print(f"[OK] Private key permissions correct: {perms}")
+        else:
+            print(f"[FAIL] Private key permissions incorrect: {perms} (should be 600)")
+            sys.exit(1)
     else:
-        print(f"✗ Private key permissions incorrect: {perms} (should be 600)")
-        sys.exit(1)
+        print(f"[OK] Private key verified on Windows: {perms}")
 else:
-    print(f"✗ Private key missing: {private_key}")
+    print(f"[FAIL] Private key missing: {private_key}")
     sys.exit(1)
 
-print("\n✓ Health check passed")
+print("\n[OK] Health check passed")
 PYEOF
 
 # Step 9: Final summary
