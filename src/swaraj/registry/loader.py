@@ -306,11 +306,20 @@ class RegistryLoader:
         Returns:
             List of manifest names (without .yaml extension).
         """
-        if not self.registry_dir.exists():
+        # Handle SwarajSettings object or Path
+        if hasattr(self.registry_dir, 'model_dump'):
+            # It's a SwarajSettings object, get the registry_dir field
+            registry_path = Path(self.registry_dir.registry_dir)
+        elif isinstance(self.registry_dir, str):
+            registry_path = Path(self.registry_dir)
+        else:
+            registry_path = self.registry_dir
+        
+        if not registry_path.exists():
             return []
         
         manifests = []
-        for f in self.registry_dir.glob("*.yaml"):
+        for f in registry_path.glob("*.yaml"):
             manifests.append(f.stem)
         
         return sorted(manifests)

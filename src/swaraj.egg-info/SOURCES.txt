@@ -18,6 +18,7 @@ src/swaraj/auto_bench/capability_vector.py
 src/swaraj/auto_bench/eval_suite.py
 src/swaraj/governance/__init__.py
 src/swaraj/governance/audit_log.py
+src/swaraj/governance/auth.py
 src/swaraj/governance/certificate.py
 src/swaraj/governance/rbac.py
 src/swaraj/monitor/__init__.py
@@ -41,6 +42,7 @@ src/swaraj/tools/xlsx_writer.py
 tests/test_certificate.py
 tests/test_egress_monitor.py
 tests/test_filesystem_jail.py
+tests/test_hardening.py
 tests/test_rbac.py
 tests/test_registry_checksum.py
 tests/test_router.py

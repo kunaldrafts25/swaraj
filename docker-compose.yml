@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: swaraj-api
+    restart: unless-stopped
+    networks:
+      - swaraj_internal
+    volumes:
+      # Models (read-only for API)
+      - ./models:/app/models:ro
+      # Policies and users
+      - ./policies:/app/policies:ro
+      - ./users.json:/app/users.json:ro
+      # Data directories
+      - ./data/keys:/app/data/keys:rw
+      - ./data/audit:/app/data/audit:rw
+      - ./data/workspace:/app/data/workspace:rw
+      - ./data/artifacts:/app/data/artifacts:rw
+      # Logs
+      - ./logs:/app/logs:rw
+    environment:
+      - SWARAJ_ENV=production
+      - SWARAJ_LOG_LEVEL=INFO
+      - SWARAJ_DATA_DIR=/app/data
+      - SWARAJ_WORKSPACE_DIR=/app/data/workspace
+      - SWARAJ_KEYS_DIR=/app/data/keys
+      - SWARAJ_AUDIT_DIR=/app/data/audit
+    healthcheck:
+      test: ["CMD", "python", "-c", "import httpx; httpx.get('http://127.0.0.1:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    # Security hardening
+    read_only: false  # Needs write access to logs/data
+    tmpfs:
+      - /tmp:size=100M
+    # No privileged mode
+    privileged: false
+    # Drop all capabilities except those needed
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETGID
+      - SETUID
+    # Resource limits
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+        reservations:
+          memory: 2G
+
+  web:
+    build:
+      context: ./ui-web
+      dockerfile: ../Dockerfile.web
+    container_name: swaraj-web
+    restart: unless-stopped
+    networks:
+      - swaraj_internal
+    # Web container has NO access to private keys
+    # Serves only static files
+    volumes:
+      - ./ui-web/dist:/usr/share/nginx/html:ro
+    environment:
+      - NGINX_PORT=80
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+    # Security hardening
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx:size=50M
+      - /var/run:size=10M
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    privileged: false
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+
+# Internal network - NO external egress by default
+networks:
+  swaraj_internal:
+    internal: true
+    driver: bridge
+
+# No external ports exposed by default
+# Access via reverse proxy or explicit port mapping in production override
+# ports:
+#   - "8000:8000"  # API (uncomment for direct access)
+#   - "80:80"      # Web (uncomment for direct access)

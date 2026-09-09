@@ -34,7 +34,7 @@ class TestRouterDeterminism:
         """Verify identical inputs produce identical routing decisions."""
         # Setup mock registry with verified model
         registry_loader = Mock()
-        registry_loader.get_status.return_value = {
+        registry_loader.get_registry_status.return_value = {
             "registry_ready": True,
             "models": [
                 {
@@ -80,7 +80,7 @@ class TestRouterDeterminism:
     def test_different_inputs_different_decisions(self, tmp_path):
         """Verify different tasks may produce different routing characteristics."""
         registry_loader = Mock()
-        registry_loader.get_status.return_value = {
+        registry_loader.get_registry_status.return_value = {
             "registry_ready": True,
             "models": [
                 {
@@ -125,7 +125,7 @@ class TestFailClosedBehavior:
     def test_missing_model_fails_closed(self):
         """Verify router fails closed when no verified models exist."""
         registry_loader = Mock()
-        registry_loader.get_status.return_value = {
+        registry_loader.get_registry_status.return_value = {
             "registry_ready": False,
             "models": [],
         }
@@ -141,7 +141,7 @@ class TestFailClosedBehavior:
     def test_unverified_model_fails_closed(self):
         """Verify router fails closed when models are not verified."""
         registry_loader = Mock()
-        registry_loader.get_status.return_value = {
+        registry_loader.get_registry_status.return_value = {
             "registry_ready": False,
             "models": [
                 {
@@ -164,7 +164,7 @@ class TestFailClosedBehavior:
     def test_not_benchmarked_model_fails_closed(self, tmp_path):
         """Verify router fails closed when model lacks real benchmarks."""
         registry_loader = Mock()
-        registry_loader.get_status.return_value = {
+        registry_loader.get_registry_status.return_value = {
             "registry_ready": True,
             "models": [
                 {
@@ -243,7 +243,7 @@ class TestRoutingDecisionSchema:
     def test_valid_decision_schema(self, tmp_path):
         """Verify routing decision has all required fields."""
         registry_loader = Mock()
-        registry_loader.get_status.return_value = {
+        registry_loader.get_registry_status.return_value = {
             "registry_ready": True,
             "models": [
                 {
@@ -294,7 +294,7 @@ class TestRoutingDecisionSchema:
     def test_confidence_is_computed_not_hardcoded(self, tmp_path):
         """Verify confidence varies based on capability match."""
         registry_loader = Mock()
-        registry_loader.get_status.return_value = {
+        registry_loader.get_registry_status.return_value = {
             "registry_ready": True,
             "models": [
                 {
@@ -336,7 +336,7 @@ class TestHardwareTierHandling:
     def test_hardware_incompatible_rejected(self, tmp_path):
         """Verify models requiring higher hardware are rejected on lower tiers."""
         registry_loader = Mock()
-        registry_loader.get_status.return_value = {
+        registry_loader.get_registry_status.return_value = {
             "registry_ready": True,
             "models": [
                 {
