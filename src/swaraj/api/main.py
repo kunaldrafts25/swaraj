@@ -267,6 +267,18 @@ def create_app() -> FastAPI:
     cap_storage = CapabilityVectorStorage(cap_storage_path)
     cap_calculator = CapabilityVectorCalculator(cap_storage)
     
+    # Initialize RBAC manager
+    rbac_manager = RBACManager(
+        policy_path=settings.policy_dir / "rbac_policy.json",
+        users_path=settings.users_file
+    )
+    
+    # Initialize certificate manager
+    cert_manager = CertificateManager(keys_dir=settings.keys_dir)
+    
+    # Initialize audit logger
+    audit_logger = AuditLog(db_path=settings.audit_db_path)
+    
     # Determine hardware tier (simplified for Phase 1B)
     # Hardware detection implemented via CapabilityVectorCalculator
     hardware_tier = "cpu_only"
