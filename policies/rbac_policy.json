@@ -1,0 +1,51 @@
+{
+  "version": "1.0.0",
+  "description": "SWARAJ RBAC Policy - Deny by default",
+  "default_action": "deny",
+  "roles": {
+    "Inspector": {
+      "description": "Can read documents and view audit logs, cannot write or approve",
+      "permissions": [
+        "read_document",
+        "view_audit_log",
+        "execute_tool"
+      ],
+      "requires_approval": [
+        "write_document",
+        "generate_certificate"
+      ]
+    },
+    "Approver": {
+      "description": "Can read, write, and approve actions from Inspectors",
+      "permissions": [
+        "read_document",
+        "write_document",
+        "view_audit_log",
+        "execute_tool",
+        "approve_action"
+      ],
+      "requires_approval": [
+        "manage_users",
+        "generate_certificate"
+      ]
+    },
+    "Admin": {
+      "description": "Full access to all actions",
+      "permissions": [
+        "read_document",
+        "write_document",
+        "execute_tool",
+        "approve_action",
+        "manage_users",
+        "view_audit_log",
+        "generate_certificate"
+      ],
+      "requires_approval": []
+    }
+  },
+  "approval_workflow": {
+    "enabled": true,
+    "approvers": ["Approver", "Admin"],
+    "max_pending_days": 7
+  }
+}

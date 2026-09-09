@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --bg-primary: #0B0F14;
+    --bg-card: #11161D;
+    --bg-card2: #161D26;
+    --bg-card3: #1E2630;
+    --text-primary: #E6EDF3;
+    --text-muted: #8B949E;
+    --success: #10B981;
+    --warning: #F59E0B;
+    --error: #EF4444;
+    --info: #22D3EE;
+  }
+
+  * {
+    @apply border-white/10;
+  }
+
+  body {
+    @apply bg-sovereign-bg text-sovereign-text font-sans antialiased;
+    min-height: 100vh;
+  }
+
+  code, pre, .mono {
+    @apply font-mono;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-sovereign-card rounded-lg border border-white/10 p-4;
+  }
+
+  .card-header {
+    @apply text-sovereign-text font-medium mb-2;
+  }
+
+  .btn-primary {
+    @apply bg-sovereign-info text-sovereign-bg px-4 py-2 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply bg-sovereign-error text-white px-4 py-2 rounded-md font-medium hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .status-success {
+    @apply text-sovereign-success;
+  }
+
+  .status-warning {
+    @apply text-sovereign-warning;
+  }
+
+  .status-error {
+    @apply text-sovereign-error;
+  }
+
+  .input-field {
+    @apply bg-sovereign-card2 border border-white/10 rounded-md px-3 py-2 text-sovereign-text focus:outline-none focus:border-sovereign-info/50;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-sovereign-card;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-sovereign-card3 rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-white/20;
+}
