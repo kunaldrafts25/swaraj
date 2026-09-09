@@ -1,8 +1,18 @@
 ```
-# Dependencies
-node_modules/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
 
-# Build artifacts
-ui-web/node_modules/
+# Database
+data/audit.db
 
+# Keys (assuming sensitive)
+keys/
+
+# Environment
+.env
+.env.local
+*.env.*
 ```

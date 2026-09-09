@@ -33,9 +33,13 @@ class SwarajSettings(BaseSettings):
     registry_dir: Path = Path(__file__).resolve().parent.parent.parent / "src" / "swaraj" / "registry" / "manifests"
     data_dir: Path = Path(__file__).resolve().parent.parent.parent / "data"
     logs_dir: Path = Path(__file__).resolve().parent.parent.parent / "logs"
+    policy_dir: Path = Path(__file__).resolve().parent.parent.parent / "policies"
+    users_file: Path = Path(__file__).resolve().parent.parent.parent / "users.json"
+    audit_db_path: Path = Path(__file__).resolve().parent.parent.parent / "data" / "audit.db"
     
     # Security settings
     signing_key_dir: Path = Path(__file__).resolve().parent.parent.parent / "keys"
+    keys_dir: Path = Path(__file__).resolve().parent.parent.parent / "keys"
     signing_private_key_path: Optional[Path] = None
     signing_public_key_path: Optional[Path] = None
     
