@@ -325,7 +325,7 @@ class AgentGraph:
                         step_id=step.step_id,
                         tool_name=step.action,
                         success=True,
-                        result={"content_preview": content[:1500], "path": str(safe_path)},
+                        result={"content_preview": content[:8000], "path": str(safe_path)},
                         source_references=[filename],
                     )
                 else:

@@ -691,40 +691,66 @@ def create_app() -> FastAPI:
         ocr_results: List[Dict[str, Any]] = []
         full_text = ""
 
-        # PDF processing: try pypdf first for fast clean extraction
+        # PDF processing: try PyMuPDF / pypdf first for fast extraction
         if file_ext == ".pdf":
+            # 1. Try PyMuPDF
             try:
-                import pypdf
-                reader = pypdf.PdfReader(str(saved_file_path))
-                pages_processed = len(reader.pages)
+                import pymupdf
+                doc = pymupdf.open(str(saved_file_path))
+                pages_processed = len(doc)
                 page_texts = []
-                for idx, page in enumerate(reader.pages):
-                    txt = page.extract_text() or ""
-                    page_texts.append(txt)
-                    ocr_results.append({
-                        "page": idx + 1,
-                        "text": txt[:500],
-                        "confidence": 1.0 if txt.strip() else 0.0,
-                    })
+                for idx, page in enumerate(doc):
+                    t = page.get_text() or ""
+                    page_texts.append(t)
+                    if t.strip():
+                        ocr_results.append({
+                            "page": idx + 1,
+                            "text": t[:500],
+                            "confidence": 1.0,
+                        })
                 full_text = "\n\n".join(page_texts)
             except Exception:
                 pass
 
-            # Fallback to OCR if pypdf got minimal or no text (scanned PDF)
+            # 2. Fallback to pypdf if PyMuPDF wasn't used or yielded nothing
             if not full_text.strip():
+                try:
+                    import pypdf
+                    reader = pypdf.PdfReader(str(saved_file_path))
+                    pages_processed = len(reader.pages)
+                    page_texts = []
+                    for idx, page in enumerate(reader.pages):
+                        txt = page.extract_text() or ""
+                        page_texts.append(txt)
+                        if txt.strip():
+                            ocr_results.append({
+                                "page": idx + 1,
+                                "text": txt[:500],
+                                "confidence": 1.0,
+                            })
+                    full_text = "\n\n".join(page_texts)
+                except Exception:
+                    pass
+
+            # 3. OCR Fallback: If text is empty or suspiciously minimal (scanned PDF / vector outlines)
+            meaningful_chars = len([c for c in full_text if c.isalnum()])
+            if meaningful_chars < 120 or (pages_processed > 0 and (meaningful_chars / pages_processed) < 50):
                 try:
                     from swaraj.multimodal.ocr_pipeline import OCREngine
                     engine = OCREngine()
                     if engine.available:
-                        result = engine.process_pdf(str(saved_file_path))
-                        pages_processed = result.pages
-                        ocr_results = [
-                            {"page": b.page, "text": b.text, "confidence": b.confidence}
-                            for b in result.blocks
-                        ]
-                        full_text = result.full_text
-                except Exception:
-                    pass
+                        # Process up to 15 pages for responsive OCR
+                        result = engine.process_pdf(str(saved_file_path), max_pages=15)
+                        if result and result.full_text.strip():
+                            pages_processed = result.pages or pages_processed
+                            ocr_results = [
+                                {"page": b.page, "text": b.text, "confidence": b.confidence}
+                                for b in result.blocks
+                            ]
+                            full_text = result.full_text
+                except Exception as ocr_err:
+                    import logging
+                    logging.getLogger("swaraj.api").warning("OCR fallback error: %s", ocr_err)
 
         # DOCX processing
         elif file_ext == ".docx":
@@ -770,7 +796,7 @@ def create_app() -> FastAPI:
             pages_processed=pages_processed,
             ocr_results=ocr_results,
             indexed=indexed,
-            extracted_preview=full_text[:300].strip() if full_text else None,
+            extracted_preview=full_text[:4000].strip() if full_text else None,
             filename=file.filename,
         )
     

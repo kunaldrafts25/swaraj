@@ -255,7 +255,7 @@ export default function Chat() {
       // Build full task description including document context if present
       let finalTask = promptToSend;
       if (userMessage.attachedFile?.preview) {
-        finalTask += `\n\n[Attached Document Preview (${userMessage.attachedFile.name})]:\n${userMessage.attachedFile.preview}`;
+        finalTask += `\n\n[Document Content (${userMessage.attachedFile.name})]:\n${userMessage.attachedFile.preview}`;
       }
 
       const sourceDocs = userMessage.attachedFile?.documentId
@@ -648,62 +648,50 @@ export default function Chat() {
                       </div>
                     )}
 
-                    {/* Generated Artifact Card (if code/solution file was produced) */}
+                    {/* Verified Artifact Download Option (clean strip, no redundant text duplication) */}
                     {msg.artifact && (
                       <div
-                        className="mt-3 rounded-xl border overflow-hidden"
-                        style={{ background: 'var(--bg-base)', borderColor: 'rgba(99, 102, 241, 0.25)' }}
+                        className="mt-3 px-3.5 py-2.5 rounded-xl border flex items-center justify-between gap-3 text-xs"
+                        style={{ background: 'rgba(255, 255, 255, 0.02)', borderColor: 'rgba(99, 102, 241, 0.25)' }}
                       >
-                        <div
-                          className="px-4 py-2.5 flex items-center justify-between border-b"
-                          style={{ borderColor: 'rgba(255, 255, 255, 0.06)', background: 'rgba(99, 102, 241, 0.05)' }}
-                        >
-                          <div className="flex items-center gap-2">
-                            <FileCode size={15} className="text-indigo-400" />
-                            <span className="font-mono text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
-                              {msg.artifact.filename}
-                            </span>
-                            <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/60 font-mono">
-                              Verified
-                            </span>
-                          </div>
-
-                          <div className="flex items-center gap-1.5">
-                            {msg.artifact.content && (
-                              <button
-                                onClick={() => handleCopy(msg.artifact!.content!, msg.id)}
-                                className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-white/5 hover:bg-white/10 text-zinc-300 transition-colors"
-                              >
-                                {copiedArtifact === msg.id ? (
-                                  <>
-                                    <Check size={12} className="text-emerald-400" />
-                                    <span>Copied</span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy size={12} />
-                                    <span>Copy Code</span>
-                                  </>
-                                )}
-                              </button>
-                            )}
-                            <a
-                              href={`/api/artifact/${msg.artifact.filename}`}
-                              download={msg.artifact.filename}
-                              className="flex items-center gap-1 text-[11px] px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition-colors"
-                            >
-                              <Download size={12} />
-                              <span>Download</span>
-                            </a>
-                          </div>
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <FileCode size={16} className="text-indigo-400 shrink-0" />
+                          <span className="font-mono text-xs font-medium text-zinc-200 truncate">
+                            {msg.artifact.filename}
+                          </span>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950/80 text-emerald-400 border border-emerald-800/60 font-mono shrink-0">
+                            Verified
+                          </span>
                         </div>
 
-                        {/* Code snippet display */}
-                        {msg.artifact.content && (
-                          <div className="p-3.5 max-h-72 overflow-y-auto font-mono text-xs text-zinc-300 leading-relaxed bg-[#0B0D13]">
-                            <pre className="whitespace-pre-wrap">{msg.artifact.content}</pre>
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 shrink-0">
+                          {msg.artifact.content && (
+                            <button
+                              onClick={() => handleCopy(msg.artifact!.content!, msg.id)}
+                              className="flex items-center gap-1 text-[11px] px-2.5 py-1 rounded bg-white/5 hover:bg-white/10 text-zinc-300 transition-colors"
+                            >
+                              {copiedArtifact === msg.id ? (
+                                <>
+                                  <Check size={12} className="text-emerald-400" />
+                                  <span>Copied</span>
+                                </>
+                              ) : (
+                                <>
+                                  <Copy size={12} />
+                                  <span>Copy</span>
+                                </>
+                              )}
+                            </button>
+                          )}
+                          <a
+                            href={`/api/artifact/${msg.artifact.filename}`}
+                            download={msg.artifact.filename}
+                            className="flex items-center gap-1.5 text-[11px] px-3 py-1 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-medium shadow-sm transition-colors"
+                          >
+                            <Download size={12} />
+                            <span>Download</span>
+                          </a>
+                        </div>
                       </div>
                     )}
 
